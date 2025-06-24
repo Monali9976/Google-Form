@@ -1,28 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Personal Details Form</title>
+    <meta charset="UTF-8">
+    <title>Client Query Form – Ashutosh Logistics Pvt Ltd.</title>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 12px;
+        }
+        h2 {
+            color: #222;
+        }
+        label {
+            display: block;
+            margin-top: 12px;
+            font-weight: bold;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 6px;
+        }
+        .checkbox-group, .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .checkbox-group label,
+        .radio-group label {
+            font-weight: normal;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #1976D2;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+    </style>
 </head>
 <body>
-  <h2>Personal Details Form</h2>
-  <form action="#" method="post">
-    <label for="fullname">Full Name:</label><br>
-    <input type="text" id="fullname" name="fullname" required><br><br>
 
-    <label for="email">Email Address:</label><br>
-    <input type="email" id="email" name="email" required><br><br>
+<h2>Client Query Form – (Ashutosh Logistics Pvt Ltd.)</h2>
+<p>Please fill out the form below to help us understand your requirements.</p>
 
-    <label for="city">City:</label><br>
-    <input type="text" id="city" name="city" required><br><br>
+<form id="queryForm">
+    <label>Company Name</label>
+    <input type="text" name="company_name" required>
 
-    <label for="state">State:</label><br>
-    <input type="text" id="state" name="state" required><br><br>
+    <label>Contact Person</label>
+    <input type="text" name="contact_person" required>
 
-    <label for="pincode">Pincode:</label><br>
-    <input type="text" id="pincode" name="pincode" required><br><br>
+    <label>Phone Number</label>
+    <input type="tel" name="phone" required>
 
-    <button type="submit">Submit</button>
-  </form>
+    <label>Email Address</label>
+    <input type="email" name="email">
+
+    <label>Location/Address</label>
+    <input type="text" name="address">
+
+    <label>Service Type Required</label>
+    <div class="checkbox-group">
+        <label><input type="checkbox" name="service" value="Transportation / Freight"> Transportation / Freight</label>
+        <label><input type="checkbox" name="service" value="Warehousing & Storage"> Warehousing & Storage</label>
+        <label><input type="checkbox" name="service" value="Last-Mile Delivery"> Last-Mile Delivery</label>
+        <label><input type="checkbox" name="service" value="Customs Clearance"> Customs Clearance</label>
+        <label><input type="checkbox" name="service" value="Supply Chain Management"> Supply Chain Management</label>
+        <input type="text" name="service_other" placeholder="Other...">
+    </div>
+
+    <label>Shipment Details - Type Of Goods</label>
+    <input type="text" name="goods">
+
+    <label>Estimated Weight and Volume</label>
+    <input type="text" name="weight_volume">
+
+    <label>Pickup Location</label>
+    <input type="text" name="pickup">
+
+    <label>Delivery Location</label>
+    <input type="text" name="delivery">
+
+    <label>Preferred Mode Of Transport</label>
+    <div class="checkbox-group">
+        <label><input type="checkbox" name="mode" value="Rail"> Rail</label>
+        <label><input type="checkbox" name="mode" value="Road"> Road</label>
+        <label><input type="checkbox" name="mode" value="Air"> Air</label>
+        <label><input type="checkbox" name="mode" value="Sea"> Sea</label>
+    </div>
+
+    <label>Expected Shipment Date(s)</label>
+    <input type="date" name="shipment_date">
+
+    <label>One-Time or Recurring Service?</label>
+    <div class="radio-group">
+        <label><input type="radio" name="frequency" value="One-Time"> One-Time</label>
+        <label><input type="radio" name="frequency" value="Weekly"> Weekly</label>
+        <label><input type="radio" name="frequency" value="Monthly"> Monthly</label>
+        <input type="text" name="frequency_other" placeholder="Other...">
+    </div>
+
+    <label>Special Requirements</label>
+    <textarea name="special_reqs" rows="3"></textarea>
+
+    <label>Additional Comments</label>
+    <textarea name="comments" rows="3"></textarea>
+
+    <button type="submit">Submit & Download Excel</button>
+</form>
+
+<script>
+    document.getElementById("queryForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const form = e.target;
+        const formData = new FormData(form);
+
+        const getValues = (name) => {
+            return Array.from(document.querySelectorAll(`[name="${name}"]:checked`))
+                .map(input => input.value)
+                .join(", ");
+        };
+
+        const data = {
+            "Company Name": formData.get("company_name"),
+            "Contact Person": formData.get("contact_person"),
+            "Phone": formData.get("phone"),
+            "Email": formData.get("email"),
+            "Address": formData.get("address"),
+            "Service Type": getValues("service") + (formData.get("service_other") || ""),
+            "Goods": formData.get("goods"),
+            "Weight & Volume": formData.get("weight_volume"),
+            "Pickup": formData.get("pickup"),
+            "Delivery": formData.get("delivery"),
+            "Mode of Transport": getValues("mode"),
+            "Shipment Date": formData.get("shipment_date"),
+            "Frequency": formData.get("frequency") || formData.get("frequency_other"),
+            "Special Reqs": formData.get("special_reqs"),
+            "Comments": formData.get("comments")
+        };
+
+        const ws = XLSX.utils.json_to_sheet([data]);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Client_Query");
+
+        XLSX.writeFile(wb, "Client_Query_Form.xlsx");
+    });
+</script>
+
 </body>
 </html>
